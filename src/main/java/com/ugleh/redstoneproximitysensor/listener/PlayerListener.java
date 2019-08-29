@@ -96,27 +96,13 @@ public class PlayerListener implements Listener {
         triggerRunners.add(new PlayerEntity(this));
         triggerRunners.add(new ProjectileEntity(this));
         triggerRunners.add(new VehicleEntity(this));
-        triggerRunners.add(new IndividualMob(this));
+        //triggerRunners.add(new IndividualMob(this));
         triggerRunners.add(new Others(this));
     }
 
 
     public List<String> WordWrapLore(String rawString) {
-        rawString = ChatColor.translateAlternateColorCodes('&', rawString);
-        if(rawString.equals("")) return Collections.singletonList("");
-        StringBuilder newString = new StringBuilder();
-        String[] lines;
-        lines = rawString.split("\\\\n");
-        for(String string : lines) {
-            StringBuilder sb = new StringBuilder(string);
-            int i = 0;
-            while (i + 35 < sb.length() && (i = sb.lastIndexOf(" ", i + 35)) != -1) {
-                sb.replace(i, i + 1, "\\n");
-            }
-            newString.append(sb).append("\\n");
-        }
-        return Arrays.asList(newString.toString().split("\\\\n"));
-
+        return RedstoneProximitySensor.getInstance().wordWrapLore(rawString);
     }
 
 
@@ -125,7 +111,7 @@ public class PlayerListener implements Listener {
         ItemStack result = e.getRecipe().getResult();
         if (!(result.hasItemMeta() && result.getItemMeta().hasDisplayName())) return;
         //Check if item is a RP Sensor.
-        if ((!result.getItemMeta().getDisplayName().equals(getInstance().rps.getItemMeta().getDisplayName()))) return;
+        if ((!result.getItemMeta().getDisplayName().equals(getInstance().rpsItemStack.getItemMeta().getDisplayName()))) return;
 
         if (!e.getWhoClicked().hasPermission("rps.create")) {
             e.setResult(Result.DENY);
@@ -156,7 +142,7 @@ public class PlayerListener implements Listener {
     public void InventoryClickEvent(InventoryClickEvent e) {
         if (e.getClickedInventory() == null) return;
         if (!e.getWhoClicked().hasPermission("rps.menu")) return;
-        if (!(e.getView().getTitle().equals(invName) || e.getView().getTitle().equals(invName))) return;
+        if (!e.getView().getTitle().equals(invName)) return;
         RPS selectedRPS = userSelectedRPS.get(e.getWhoClicked().getUniqueId());
 
         //We understand that the inventory we are currently in is the RPS Menu so lets cancel any future click events now.

@@ -29,15 +29,13 @@ import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.logging.Level;
 
 public class RedstoneProximitySensor extends JavaPlugin {
     public static RedstoneProximitySensor instance;
     public String chatPrefix = ChatColor.DARK_PURPLE + "[" + ChatColor.LIGHT_PURPLE + "RPS" + ChatColor.DARK_PURPLE + "] " + ChatColor.RED;
-    public ItemStack rps;
+    public ItemStack rpsItemStack;
     public boolean needsUpdate = false;
 
     //Listeners
@@ -114,16 +112,16 @@ public class RedstoneProximitySensor extends JavaPlugin {
     }
 
     private void createRecipes() {
-        rps = new ItemStack(Material.REDSTONE_TORCH, 1);
-        rps.addUnsafeEnchantment(Enchantment.ARROW_DAMAGE, 1);
-        ItemMeta rpsMeta = rps.getItemMeta();
+        rpsItemStack = new ItemStack(Material.REDSTONE_TORCH, 1);
+        rpsItemStack.addUnsafeEnchantment(Enchantment.ARROW_DAMAGE, 1);
+        ItemMeta rpsMeta = rpsItemStack.getItemMeta();
         assert rpsMeta != null;
         rpsMeta.setDisplayName(ChatColor.RED + this.langStringColor("lang_main_itemname"));
         rpsMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-        rps.setItemMeta(rpsMeta);
+        rpsItemStack.setItemMeta(rpsMeta);
         ShapedRecipe rpsRecipe;
         NamespacedKey key = new NamespacedKey(this, this.getDescription().getName());
-        rpsRecipe = new ShapedRecipe(key, rps);
+        rpsRecipe = new ShapedRecipe(key, rpsItemStack);
         rpsRecipe.shape("-R-", "-R-", "-R-");
         rpsRecipe.setIngredient('R', Material.REDSTONE_TORCH);
         this.getServer().addRecipe(rpsRecipe);
@@ -133,9 +131,9 @@ public class RedstoneProximitySensor extends JavaPlugin {
     @Override
     public void onDisable() {
         for (Map.Entry<UUID, Inventory> playerInInventory : playerListener.userSelectedInventory.entrySet()) {
-            HumanEntity HumanEntityList[] = new HumanEntity[playerInInventory.getValue().getViewers().size()];
-            HumanEntityList = playerInInventory.getValue().getViewers().toArray(HumanEntityList);
-            for (HumanEntity viewer : HumanEntityList) {
+            HumanEntity humanEntityList[] = new HumanEntity[playerInInventory.getValue().getViewers().size()];
+            humanEntityList = playerInInventory.getValue().getViewers().toArray(humanEntityList);
+            for (HumanEntity viewer : humanEntityList) {
                 viewer.closeInventory();
             }
         }
@@ -153,7 +151,7 @@ public class RedstoneProximitySensor extends JavaPlugin {
         return getDescription().getVersion();
     }
 
-    public HashMap<String, String> getLang() {
+    public Map<String, String> getLang() {
         return languageConfig.getLanguageNodes();
     }
 
@@ -172,6 +170,23 @@ public class RedstoneProximitySensor extends JavaPlugin {
 
     public LanguageConfig getLanguageConfig() {
         return languageConfig;
+    }
+
+    public List<String> wordWrapLore(String rawString) {
+        rawString = ChatColor.translateAlternateColorCodes('&', rawString);
+        if(rawString.equals("")) return Collections.singletonList("");
+        StringBuilder newString = new StringBuilder();
+        String[] lines;
+        lines = rawString.split("\\\\n");
+        for(String string : lines) {
+            StringBuilder sb = new StringBuilder(string);
+            int i = 0;
+            while (i + 35 < sb.length() && (i = sb.lastIndexOf(" ", i + 35)) != -1) {
+                sb.replace(i, i + 1, "\\n");
+            }
+            newString.append(sb).append("\\n");
+        }
+        return Arrays.asList(newString.toString().split("\\\\n"));
     }
 
     private String prefixWithColor(RedstoneProximitySensor.ColorNode colorNode) {
